@@ -1,14 +1,31 @@
-const https = require('https')
+// const https = require('https')
 const Tour = require('../models/tours')
+const APIFeature = require('../utils/fetchClass')
 
 const tourControllers = {}
 
+tourControllers.topAlias = (req, res, next) => {
+  req.query.limit = '5'
+  req.query.sort = '-ratingsAverage,price'
+  req.query.fields = 'name,ratingsAverage,price,difficulty'
+
+  next()
+}
+
 tourControllers.getTours = async (req, res) => {
   try {
-    const tourData = await Tour.find()
+    //execute query
+    const toursData = new APIFeature(Tour, req.query)
+      .filter()
+      .sort()
+      .fields()
+      .paginate()
+    const tours = await toursData.query
+
     res.status(200).json({
       status: true,
-      data: tourData,
+      total: tours.length,
+      data: tours,
     })
   } catch (err) {
     res.status(500).json({
@@ -149,5 +166,33 @@ tourControllers.deleteTour = async (req, res) => {
 //   //     data,
 //   //   })
 // }
+
+tourControllers.getTourStats = async (req, res) => {
+  try {
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4 } },
+      },
+      {
+        $group: {
+          _id: null,
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+    ])
+    res.status(200).json({
+      status: true,
+      data: stats,
+    })
+  } catch (err) {
+    res.status(404).json({
+      status: false,
+      message: 'Record not found',
+    })
+  }
+}
 
 module.exports = tourControllers
