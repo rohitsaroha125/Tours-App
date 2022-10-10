@@ -1,4 +1,6 @@
 const mongoose = require('mongoose')
+const slugify = require('slugify')
+const validator = require('validator')
 
 const tourSchema = new mongoose.Schema(
   {
@@ -7,7 +9,10 @@ const tourSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      maxlength: 10,
+      validate: [validator.isAlpha, 'Name should be alphabetic only'],
     },
+    slug: String,
     ratingsAverage: {
       type: Number,
       default: 5,
@@ -32,7 +37,15 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      validate: {
+        validator: function (val) {
+          return val < this.price
+        },
+        message: 'Discount price should be less than price',
+      },
+    },
     summary: {
       type: String,
       trim: true,
@@ -58,6 +71,11 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 )
+
+tourSchema.pre('save', function (next) {
+  this.slug = slugify(this.name, { lower: true })
+  next()
+})
 
 tourSchema.virtual('durationInWeeks').get(function () {
   return this.durations / 7
