@@ -1,6 +1,7 @@
 // const https = require('https')
 const Tour = require('../models/tours')
 const APIFeature = require('../utils/fetchClass')
+const AppError = require('../utils/appError')
 
 const tourControllers = {}
 
@@ -12,7 +13,7 @@ tourControllers.topAlias = (req, res, next) => {
   next()
 }
 
-tourControllers.getTours = async (req, res) => {
+tourControllers.getTours = async (req, res, next) => {
   try {
     //execute query
     const toursData = new APIFeature(Tour, req.query)
@@ -28,14 +29,11 @@ tourControllers.getTours = async (req, res) => {
       data: tours,
     })
   } catch (err) {
-    res.status(500).json({
-      status: false,
-      message: err.message,
-    })
+    next(new AppError('Records not found', 404))
   }
 }
 
-tourControllers.getTourById = async (req, res) => {
+tourControllers.getTourById = async (req, res, next) => {
   const { id } = req.params
   try {
     const tourData = await Tour.findById({
@@ -46,15 +44,11 @@ tourControllers.getTourById = async (req, res) => {
       data: tourData,
     })
   } catch (err) {
-    console.log('error is ', err)
-    res.status(404).json({
-      status: false,
-      message: 'Record not found',
-    })
+    next(new AppError('Records not found', 404))
   }
 }
 
-tourControllers.createTour = async (req, res) => {
+tourControllers.createTour = async (req, res, next) => {
   const data = req.body
   try {
     const tourData = new Tour(data)
@@ -64,14 +58,11 @@ tourControllers.createTour = async (req, res) => {
       data: saveTour,
     })
   } catch (err) {
-    res.status(400).json({
-      status: false,
-      message: err.message,
-    })
+    next(new AppError('Invalid Inputs', 400))
   }
 }
 
-tourControllers.updateTour = async (req, res) => {
+tourControllers.updateTour = async (req, res, next) => {
   const { id } = req.params
   const data = req.body
   try {
@@ -83,14 +74,11 @@ tourControllers.updateTour = async (req, res) => {
       data: tourData,
     })
   } catch (err) {
-    res.status(500).json({
-      status: false,
-      message: err.message,
-    })
+    next(new AppError('Invalid Inputs', 400))
   }
 }
 
-tourControllers.deleteTour = async (req, res) => {
+tourControllers.deleteTour = async (req, res, next) => {
   const { id } = req.params
   try {
     const tourData = await Tour.findByIdAndDelete({ _id: id })
@@ -99,10 +87,7 @@ tourControllers.deleteTour = async (req, res) => {
       data: tourData,
     })
   } catch (err) {
-    res.status(404).json({
-      status: false,
-      message: err.message,
-    })
+    next(new AppError('Record not found', 404))
   }
 }
 
