@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const slugify = require('slugify')
-const validator = require('validator')
 
 const tourSchema = new mongoose.Schema(
   {
@@ -9,8 +8,6 @@ const tourSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
-      maxlength: 10,
-      validate: [validator.isAlpha, 'Name should be alphabetic only'],
     },
     slug: String,
     ratingsAverage: {

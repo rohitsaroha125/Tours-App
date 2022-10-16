@@ -29,7 +29,7 @@ tourControllers.getTours = async (req, res, next) => {
       data: tours,
     })
   } catch (err) {
-    next(new AppError('Records not found', 404))
+    next(new AppError('Records not found', 404, err))
   }
 }
 
@@ -39,12 +39,19 @@ tourControllers.getTourById = async (req, res, next) => {
     const tourData = await Tour.findById({
       _id: id,
     })
+
+    console.log('tour data is ', tourData)
+
+    if (!tourData) {
+      return next(new AppError('Record not found', 404))
+    }
+
     res.status(200).json({
       status: true,
       data: tourData,
     })
   } catch (err) {
-    next(new AppError('Records not found', 404))
+    next(new AppError('No tour found with that id', 404, err))
   }
 }
 
@@ -58,7 +65,7 @@ tourControllers.createTour = async (req, res, next) => {
       data: saveTour,
     })
   } catch (err) {
-    next(new AppError('Invalid Inputs', 400))
+    next(new AppError('Invalid Inputs', 400, err))
   }
 }
 
@@ -74,7 +81,7 @@ tourControllers.updateTour = async (req, res, next) => {
       data: tourData,
     })
   } catch (err) {
-    next(new AppError('Invalid Inputs', 400))
+    next(new AppError('Invalid Inputs', 400, err))
   }
 }
 
@@ -87,7 +94,7 @@ tourControllers.deleteTour = async (req, res, next) => {
       data: tourData,
     })
   } catch (err) {
-    next(new AppError('Record not found', 404))
+    next(new AppError('Record not found', 404, err))
   }
 }
 
