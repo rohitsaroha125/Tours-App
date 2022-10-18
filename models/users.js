@@ -34,6 +34,7 @@ const userSchema = mongoose.Schema({
       message: 'Confirm password should match with password',
     },
   },
+  passwordChangedAt: Date,
 })
 
 userSchema.pre('save', async function (next) {
@@ -43,6 +44,16 @@ userSchema.pre('save', async function (next) {
   this.passwordConfirm = undefined
   next()
 })
+
+userSchema.methods.changePasswordAfter = function (JWTtimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTime = parseInt(this.passwordChangedAt.getTime() / 1000, 10)
+    console.log(changedTime, JWTtimestamp)
+    return JWTtimestamp < changedTime
+  }
+
+  return false
+}
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,

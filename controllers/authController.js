@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const Users = require('../models/users')
+const { use } = require('../routes/tours')
 const AppError = require('../utils/appError')
 
 const authController = {}
@@ -70,10 +71,27 @@ authController.protect = async (req, res, next) => {
     return next(new AppError('You are not logged in!', 401))
   }
 
-  // verify token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET)
+  try {
+    // verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-  next()
+    // check if user exists
+    const user = await Users.findById(decoded.id)
+    if (!user) {
+      return next(new AppError('User belonging to token is not there', 401))
+    }
+
+    // check if password changed after
+    if (user.changePasswordAfter(decoded.iat)) {
+      return next(new AppError('Password changed after token generated', 401))
+    }
+
+    req.user = user
+
+    next()
+  } catch (err) {
+    next(new AppError(err.message, 400))
+  }
 }
 
 module.exports = authController
