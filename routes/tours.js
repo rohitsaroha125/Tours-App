@@ -1,6 +1,7 @@
 const express = require('express')
 const tourControllers = require('../controllers/tourControllers')
 const authController = require('../controllers/authController')
+const reviewController = require('../controllers/reviewController')
 
 const router = express.Router()
 
@@ -25,6 +26,21 @@ router
     tourControllers.deleteTour
   )
 
+router
+  .route('/:tourId/reviews')
+  .post(
+    authController.protect,
+    reviewController.getBodyData,
+    reviewController.createReview
+  )
+  .get(reviewController.getReviews)
+
 // router.post('/addTours', tourControllers.addTours)
+
+router
+  .route('/:tourId/reviews/:id')
+  .get(reviewController.getReviewById)
+  .delete(authController.protect, reviewController.deleteReview)
+  .patch(authController.protect, reviewController.updateReview)
 
 module.exports = router

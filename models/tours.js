@@ -62,6 +62,12 @@ const tourSchema = new mongoose.Schema(
       default: Date.now(),
     },
     startDates: [Date],
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -74,8 +80,24 @@ tourSchema.pre('save', function (next) {
   next()
 })
 
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  })
+
+  next()
+})
+
 tourSchema.virtual('durationInWeeks').get(function () {
   return this.durations / 7
+})
+
+// virtual populate
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
 })
 
 const Tour = mongoose.model('Tour', tourSchema)

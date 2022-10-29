@@ -1,7 +1,6 @@
 // const https = require('https')
 const Tour = require('../models/tours')
-const APIFeature = require('../utils/fetchClass')
-const AppError = require('../utils/appError')
+const handleFactory = require('./handleFactory')
 
 const tourControllers = {}
 
@@ -13,90 +12,31 @@ tourControllers.topAlias = (req, res, next) => {
   next()
 }
 
-tourControllers.getTours = async (req, res, next) => {
-  try {
-    //execute query
-    const toursData = new APIFeature(Tour, req.query)
-      .filter()
-      .sort()
-      .fields()
-      .paginate()
-    const tours = await toursData.query
+// tourControllers.getTours = async (req, res, next) => {
+//   try {
+//     //execute query
+//     const toursData = new APIFeature(Tour, req.query)
+//       .filter()
+//       .sort()
+//       .fields()
+//       .paginate()
+//     const tours = await toursData.query
 
-    res.status(200).json({
-      status: true,
-      total: tours.length,
-      data: tours,
-    })
-  } catch (err) {
-    next(new AppError('Records not found', 404, err))
-  }
-}
+//     res.status(200).json({
+//       status: true,
+//       total: tours.length,
+//       data: tours,
+//     })
+//   } catch (err) {
+//     next(new AppError('Records not found', 404, err))
+//   }
+// }
 
-tourControllers.getTourById = async (req, res, next) => {
-  const { id } = req.params
-  try {
-    const tourData = await Tour.findById({
-      _id: id,
-    })
-
-    console.log('tour data is ', tourData)
-
-    if (!tourData) {
-      return next(new AppError('Record not found', 404))
-    }
-
-    res.status(200).json({
-      status: true,
-      data: tourData,
-    })
-  } catch (err) {
-    next(new AppError('No tour found with that id', 404, err))
-  }
-}
-
-tourControllers.createTour = async (req, res, next) => {
-  const data = req.body
-  try {
-    const tourData = new Tour(data)
-    const saveTour = await tourData.save()
-    res.status(201).json({
-      status: true,
-      data: saveTour,
-    })
-  } catch (err) {
-    next(new AppError('Invalid Inputs', 400, err))
-  }
-}
-
-tourControllers.updateTour = async (req, res, next) => {
-  const { id } = req.params
-  const data = req.body
-  try {
-    const tourData = await Tour.findByIdAndUpdate({ _id: id }, data, {
-      new: true,
-    })
-    res.status(200).json({
-      status: true,
-      data: tourData,
-    })
-  } catch (err) {
-    next(new AppError('Invalid Inputs', 400, err))
-  }
-}
-
-tourControllers.deleteTour = async (req, res, next) => {
-  const { id } = req.params
-  try {
-    const tourData = await Tour.findByIdAndDelete({ _id: id })
-    res.status(200).json({
-      status: true,
-      data: tourData,
-    })
-  } catch (err) {
-    next(new AppError('Record not found', 404, err))
-  }
-}
+tourControllers.getTours = handleFactory.getDocs(Tour)
+tourControllers.getTourById = handleFactory.getDoc(Tour, { path: 'reviews' })
+tourControllers.createTour = handleFactory.createDoc(Tour)
+tourControllers.updateTour = handleFactory.updateDoc(Tour)
+tourControllers.deleteTour = handleFactory.deleteDoc(Tour)
 
 // tourControllers.addTours = async (req, response) => {
 //   const url = 'https://www.natours.dev/api/v1/tours'

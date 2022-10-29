@@ -8,6 +8,7 @@ const hpp = require('hpp')
 const AppError = require('./utils/appError')
 const tourRoutes = require('./routes/tours')
 const authRoutes = require('./routes/auth')
+const reviewRoutes = require('./routes/review')
 const errorController = require('./controllers/errorController')
 
 process.on('uncaughtException', (err) => {
@@ -40,6 +41,7 @@ const connection = require('./config/connection')
 
 app.use('/tours', tourRoutes)
 app.use('/users', authRoutes)
+app.use('/reviews', reviewRoutes)
 
 app.all('*', (req, res, next) => {
   next(new AppError('Wrong Route', 404))
