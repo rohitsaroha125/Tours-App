@@ -74,7 +74,11 @@ handleFactory.getDoc = (Model, popOptions) => async (req, res, next) => {
 handleFactory.getDocs = (Model) => async (req, res, next) => {
   try {
     //execute query
-    const toursData = new APIFeature(Model, req.query)
+
+    const filters = {}
+    if (req.params.tourId) filters.tour = req.params.tourId
+
+    const toursData = new APIFeature(Model.find(filters), req.query)
       .filter()
       .sort()
       .fields()
