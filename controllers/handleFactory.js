@@ -41,6 +41,7 @@ handleFactory.createDoc = (Model) => async (req, res, next) => {
       data: review,
     })
   } catch (err) {
+    console.log('error is ', err)
     next(new AppError('Invalid Inputs', 400, err))
   }
 }

@@ -13,13 +13,21 @@ router.route('/getStats').get(tourControllers.getTourStats)
 
 router
   .route('/')
-  .get(authController.protect, tourControllers.getTours)
-  .post(authController.protect, tourControllers.createTour)
+  .get(tourControllers.getTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin'),
+    tourControllers.createTour
+  )
 
 router
   .route('/:id')
-  .get(authController.protect, tourControllers.getTourById)
-  .patch(authController.protect, tourControllers.updateTour)
+  .get(tourControllers.getTourById)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin'),
+    tourControllers.updateTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin'),
@@ -30,6 +38,7 @@ router
   .route('/:tourId/reviews')
   .post(
     authController.protect,
+    authController.restrictTo('user'),
     reviewController.getBodyData,
     reviewController.createReview
   )
@@ -40,7 +49,15 @@ router
 router
   .route('/:tourId/reviews/:id')
   .get(reviewController.getReviewById)
-  .delete(authController.protect, reviewController.deleteReview)
-  .patch(authController.protect, reviewController.updateReview)
+  .delete(
+    authController.protect,
+    authController.restrictTo('user', 'admin'),
+    reviewController.deleteReview
+  )
+  .patch(
+    authController.protect,
+    authController.restrictTo('user', 'admin'),
+    reviewController.updateReview
+  )
 
 module.exports = router

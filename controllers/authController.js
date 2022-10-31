@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const jwt = require('jsonwebtoken')
+const sharp = require('sharp')
 const Users = require('../models/users')
 const AppError = require('../utils/appError')
 const sendEmail = require('../utils/email')
@@ -184,6 +185,20 @@ authController.forgotPassword = async (req, res, next) => {
   }
 }
 
+authController.resizeImage = (req, res, next) => {
+  if (!req.file) return next()
+
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`
+
+  sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/users/${req.file.filename}`)
+
+  next()
+}
+
 authController.resetPassword = async (req, res, next) => {
   try {
     // get user details by hash
@@ -283,6 +298,7 @@ authController.updatePassword = async (req, res, next) => {
 
 authController.updateDetails = async (req, res, next) => {
   try {
+    console.log('file is ', req.file)
     // create error if user posts password data
     if (req.body.password || req.body.passwordConfirm) {
       return next(new AppError('This route not used for password update', 400))
@@ -291,6 +307,9 @@ authController.updateDetails = async (req, res, next) => {
     // update user document
     const { user } = req
     const filterObject = filterObj(req.body, 'name', 'email')
+
+    if (req.file) filterObject.photo = req.file.filename
+
     const updateUser = await Users.findByIdAndUpdate(
       { _id: user.id },
       filterObject,
